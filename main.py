@@ -33,67 +33,86 @@ class GameEnvironment():
     else:
         env = connect_four_v3.env(render_mode="human")
 
-    agent0 = ConnectFourAgent(
-        learning_rate=self.learning_rate,
-        discount_factor=self.discount_factor,
-        device=device
+    agent = ConnectFourAgent(
+      learning_rate=self.learning_rate,
+      discount_factor=self.discount_factor,
+      device=device
     )
-
-    agent1 = agent0  # both players use the same agent
-
 
     # moved replay memory creation before the episode loop
     if (is_training):
         replay_memory = ReplayMemory(self.replay_memory_size)
 
     # use iterations to control number of episodes
-    iterations = 10000
+    iterations = 20000
     train_steps = 0
+
+    agent_wins = 0
+    opponent_wins = 0
+
     for episode in range(iterations):
-      env.reset(seed=42)
+      env.reset() # Removed seed for more varied training
 
       last_observation = {env.agents[0]: None, env.agents[1]: None}
       last_action = {env.agents[0]: None, env.agents[1]: None}
 
-      for agent in env.agent_iter():
+      training_agent = env.agents[0]
+
+      for agent_name in env.agent_iter():
         # note: all these values are agent-specific
         observation, reward, termination, truncation, info = env.last()
+        
+        if (termination or truncation) and reward != 0:
+          if agent_name == training_agent and reward > 0:
+            agent_wins += 1
+          elif agent_name != training_agent and reward > 0:
+            opponent_wins += 1
 
         if termination or truncation:
           action = None
         else:
           # Using the action mask to only select valid actions, because it kept going off the board
           action_mask = observation['action_mask']
+          if agent_name == training_agent:
+            if (random.random() < self.epsilon):
+              # takes random action from valid actions (exploration)
+              valid_actions = np.where(action_mask == 1)[0]
+              action = np.random.choice(valid_actions)
+            else:
+              q_values = agent.get_Q_values(observation)
 
-          if (random.random() < self.epsilon):
-            # takes random action from valid actions (exploration)
+              # convert Tensor object to np array
+              if isinstance(q_values, torch.Tensor):
+                q_values = q_values.detach().cpu().numpy().flatten()
+
+              q_values_masked = np.where(action_mask, q_values, -np.inf)
+              action = int(np.argmax(q_values_masked))
+
+          else:
             valid_actions = np.where(action_mask == 1)[0]
             action = np.random.choice(valid_actions)
-          else:
-            # takes action with max q value
-            if (agent == env.agents[0]):  
-              q_values = agent0.get_Q_values(observation)
-            else:
-              q_values = agent1.get_Q_values(observation)
-
-            # convert Tensor object to np array
-            if isinstance(q_values, torch.Tensor):
-              q_values = q_values.detach().cpu().numpy()
-
-            q_values_masked = np.where(action_mask, q_values, -np.inf)
-            action = int(np.argmax(q_values_masked))
 
         env.step(action)
 
         # add entry to experience replay
-        if (is_training and not last_observation[agent] == None and len(env.agents) > 0):
+        if (is_training and 
+            agent_name == training_agent and 
+            last_observation[agent_name] is not None and 
+            action is not None):
 
-          prev_state_input_tensor = agent0.convert_state_to_NN_input(last_observation[agent]["observation"])
-          cur_state_input_tensor = agent0.convert_state_to_NN_input(observation["observation"])
+          prev_state_input_tensor = agent.convert_state_to_NN_input(
+              last_observation[agent_name]["observation"]
+          )
+
+          cur_state_input_tensor = agent.convert_state_to_NN_input(
+              observation["observation"]
+          )
+
 
           if action is not None:
             action_tensor = torch.tensor(action, dtype=torch.int64, device=device)
-            reward_tensor = torch.tensor(np.clip(float(reward), -1, 1), dtype=torch.float32, device=device)
+            reward_tensor = torch.tensor(float(reward), dtype=torch.float32, device=device)
+
             replay_memory.append(
                 (
                   prev_state_input_tensor.squeeze(0),
@@ -104,31 +123,47 @@ class GameEnvironment():
                 )
             )
             
-          if len(replay_memory) > 5:  
-            loss = agent0.train(replay_memory, self.mini_batch_size)
-            train_steps += 1
-
-            if train_steps % 1000 == 0:
-                agent0.update_target_network()
-
+          if len(replay_memory) > 100:  
+            loss = agent.train(replay_memory, self.mini_batch_size)
+            if loss is not None:
+              train_steps += 1
+              if train_steps % 1000 == 0:
+                agent.update_target_network()
+          
 
         # record the observation and action taken for the agent who just acted
-        last_observation[agent] = observation
-        last_action[agent] = action
+        last_observation[agent_name] = observation
+        last_action[agent_name] = action
     
       # making interval for printing, might change this
-      log_interval = max(1, iterations // 10)
+      log_interval = max(1, iterations // 20)
 
-      if (episode + 1) % log_interval == 0 or (episode + 1) == iterations:  
-        print(f"Episode {episode + 1}/{iterations} - Epsilon: {self.epsilon:.3f}")
-
-        if is_training and len(replay_memory) > 5 and loss is not None:
-          print(f"Latest loss: {loss}")
+      if (episode + 1) % log_interval == 0 or (episode + 1) == iterations:
+        total_games = episode + 1
+        win_rate = agent_wins / total_games if total_games > 0 else 0
+        
+        print(f"\nEpisode {episode + 1}/{iterations}")
+        print(f"  Epsilon: {self.epsilon:.3f}")
+        print(f"  Win Rate: {win_rate:.1%} ({agent_wins} wins / {total_games} games)")
+        print(f"  Training steps: {train_steps}")
+        print(f"  Replay memory size: {len(replay_memory)}")
+        
+        if train_steps > 0:
+          print(f"  Latest loss: {loss:.4f}")
 
       # moved this to decay after each episode
       self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
 
-    torch.save(agent0.dqn.state_dict(), "connect4_dqn_trained.pth")
+    print("\n" + "="*50)
+    print("TRAINING COMPLETE")
+    print("="*50)
+    print(f"Total games: {iterations}")
+    print(f"Agent wins: {agent_wins} ({agent_wins/iterations:.1%})")
+    print(f"Opponent wins: {opponent_wins} ({opponent_wins/iterations:.1%})")
+    print(f"Final epsilon: {self.epsilon:.3f}")
+    print(f"Total training steps: {train_steps}")
+
+    torch.save(agent.dqn.state_dict(), "connect4_dqn_trained.pth")
     print("Model saved.")
     env.close()
 

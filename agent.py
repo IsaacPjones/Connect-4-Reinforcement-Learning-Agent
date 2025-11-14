@@ -3,6 +3,8 @@ import torch.nn as nn
 import numpy as np
 from connect4_dqn import ConnectFourDQN
 
+
+
 class ConnectFourAgent():
     def __init__(self, learning_rate=0.0001, discount_factor=0.99, device="cpu"):
         self.device = device
