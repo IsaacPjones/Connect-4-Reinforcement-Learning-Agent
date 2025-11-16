@@ -87,7 +87,7 @@ class GameEnvironment():
         # record the observation and action taken for the agent who just acted
         last_observation[agent] = observation
         last_action[agent] = action
-    
+    torch.save(agent0.dqn.state_dict(), "connect4_dqn.pth")
     # decay epsilon
     self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
 
