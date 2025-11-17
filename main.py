@@ -131,20 +131,20 @@ class GameEnvironment():
 
             replay_memory.append(
                 (
-                    prev_state_input_tensor.squeeze(0),
-                    action_tensor,
-                    reward_tensor,
-                    cur_state_input_tensor.squeeze(0),
-                    termination or truncation
+                  prev_state_input_tensor.squeeze(0),
+                  action_tensor,
+                  reward_tensor,
+                  cur_state_input_tensor.squeeze(0),
+                  termination or truncation
                 )
             )
 
             if len(replay_memory) >= self.mini_batch_size:
-                loss = agent.train(replay_memory, self.mini_batch_size)
-                if loss is not None:
-                    train_steps += 1
-                    if train_steps % 1000 == 0:
-                        agent.update_target_network()
+              loss = agent.train(replay_memory, self.mini_batch_size)
+              if loss is not None:
+                train_steps += 1
+                if train_steps % 1000 == 0:
+                  agent.update_target_network()
           
 
         # record the observation and action taken for the agent who just acted
