@@ -7,6 +7,7 @@ from agent import ConnectFourAgent
 from exp_replay import ReplayMemory
 import yaml
 import random
+import os
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
 print(f"Using {device} device")
@@ -24,11 +25,25 @@ class GameEnvironment():
     self.epsilon_min = hyperparameters['epsilon_min']
     self.epsilon = self.epsilon_init
 
+  def load_model_if_exists(self, agent, model_path="connect4_dqn.pth"):
+    """Load model weights if the file exists"""
+    if os.path.exists(model_path):
+        agent.dqn.load_state_dict(torch.load(model_path, map_location=device))
+        print(f"Loaded existing model from {model_path}")
+        return True
+    else:
+        print("No existing model found, starting fresh")
+        return False
+  
   def run(self, is_training=True):
     env = connect_four_v3.env(render_mode="human")
 
     agent0 = ConnectFourAgent()
     agent1 = ConnectFourAgent()
+
+    if is_training:
+        self.load_model_if_exists(agent0)
+        self.load_model_if_exists(agent1)
 
     for episode in range(5):
       env.reset(seed=42)
