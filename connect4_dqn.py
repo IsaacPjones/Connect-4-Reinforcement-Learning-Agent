@@ -10,12 +10,12 @@ class ConnectFourDQN(nn.Module):
     # 2 layers hidden nodes, size 128 and 64
     # outputs 7 q-values for each of the 7 possible actions
     self.net = nn.Sequential (
-      nn.Linear(84, 128),
+      nn.Linear(84, 256),
       nn.ReLU(),
-      nn.Linear(128, 64),
+      nn.Linear(256, 128),
       nn.ReLU(),
-      nn.Linear(64, 7)
+      nn.Linear(128, 7)
     )
 
   def forward(self, x):
-    return self.net(x)
+    return torch.clamp(self.net(x), -10.0, 10.0)

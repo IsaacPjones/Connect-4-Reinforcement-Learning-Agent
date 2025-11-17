@@ -5,7 +5,7 @@ from agent import ConnectFourAgent
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def evaluate_agent(num_games=100):
+def evaluate_agent(num_games=1000):
     """
     Evaluate trained agent against random opponent.
     """
@@ -79,7 +79,7 @@ def evaluate_agent(num_games=100):
             draws += 1
         
         # Progress indicator
-        if (game_num + 1) % 20 == 0:
+        if (game_num + 1) % 100 == 0:
             current_win_rate = wins / (game_num + 1)
             print(f"  Games {game_num + 1}/{num_games} - Win rate: {current_win_rate:.1%} (W:{wins} L:{losses} D:{draws})")
 

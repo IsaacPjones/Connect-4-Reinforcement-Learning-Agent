@@ -55,9 +55,9 @@ class ConnectFourAgent():
         # target network values
         with torch.no_grad():
             next_q_values = self.target_dqn(next_states)
-            max_next_q = next_q_values.max(dim=1)[0]
+            next_actions = self.dqn(next_states).max(1)[1]
+            max_next_q = next_q_values.gather(1, next_actions.unsqueeze(1)).squeeze()
             target_q = rewards + self.discount_factor * max_next_q * (~dones)
-            target_q = torch.clamp(target_q, -10, 10)
 
 
         loss = self.loss_fn(current_q, target_q)
