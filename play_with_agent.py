@@ -3,7 +3,7 @@ from agent import ConnectFourAgent
 import torch
 import numpy as np
 
-def human_vs_agent(model_path="connect4_dqn.pth"):
+def human_vs_agent(model_path="connect4_dqn_trained.pth"):
     env = connect_four_v3.env(render_mode="human")
     env.reset()
     env.render()
