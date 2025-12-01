@@ -27,6 +27,7 @@ class GameEnvironment():
     self.epsilon = self.epsilon_init
     self.learning_rate = hyperparameters['learning_rate']
     self.discount_factor = hyperparameters['discount_factor']
+    self.episodes = hyperparameters['episodes']
   
   def load_model_if_exists(self, agent, model_path="connect4_dqn.pth"):
     """Load model weights if the file exists"""
@@ -68,10 +69,8 @@ class GameEnvironment():
     if (is_training):
         replay_memory = ReplayMemory(self.replay_memory_size)
 
-    # use iterations to control number of episodes
-    iterations = 4000
+    iterations = self.episodes
     train_steps = 0
-
     agent_wins = 0
     opponent_wins = 0
 
