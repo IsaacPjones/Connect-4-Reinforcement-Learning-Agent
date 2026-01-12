@@ -1,9 +1,9 @@
 # CMPT310 D200 Group 30 Connect 4 Reinforcement Learning Agent
 
 ## Packages needed
-- numpy
-- pettingzoo
-- torch
+- NumPy
+- Pettingzoo
+- PyTorch
 
 ## How to run project
 1) To train a new agent/train the existing agent, run the main.py file: `python main.py`
