@@ -28,7 +28,7 @@ The game state is a 6*7 board, with 2 layers, the first is the current players p
 ### AI Pipeline
 
 ### AI Pipeline
-
+```
 Game State (6 × 7 × 2)    
 |    
 ├─ Preprocessing    
@@ -58,5 +58,5 @@ Game State (6 × 7 × 2)
 |    
 └─ Target Network Update    
    └─ Periodic update
-
+```
 
