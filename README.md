@@ -27,33 +27,36 @@ The game state is a 6*7 board, with 2 layers, the first is the current players p
 
 ### AI Pipeline
 
-Game State (6 × 7 × 2)
-│
-├─ Preprocessing
-│   └─ Flatten to 84 features
-│
-├─ Deep Q-Network (DQN)
-│   ├─ Input: 84 neurons
-│   ├─ Hidden 1: 256 neurons + ReLU
-│   ├─ Hidden 2: 128 neurons + ReLU
-│   └─ Output: 7 Q-values
-│
-├─ Action Selection
-│   ├─ Training: Epsilon-greedy
-│   ├─ Evaluation: Max Q-value
-│   └─ Mask invalid moves
-│
-├─ Environment Interaction
-│   └─ Execute move on board
-│
-├─ Experience Replay
-│   └─ Store transition
-│
-├─ Batch Training
-│   ├─ Sample mini-batches
-│   ├─ Compute MSE loss
-│   └─ Backpropagation
-│
-└─ Target Network Update
-    └─ Periodic update
+### AI Pipeline
+
+Game State (6 × 7 × 2)    
+|    
+├─ Preprocessing    
+|  └─ Flatten to 84 features    
+|    
+├─ Deep Q-Network (DQN)    
+|  ├─ Input: 84 neurons    
+|  ├─ Hidden 1: 256 neurons + ReLU    
+|  ├─ Hidden 2: 128 neurons + ReLU    
+|  └─ Output: 7 Q-values    
+|    
+├─ Action Selection    
+|  ├─ Training: Epsilon-greedy    
+|  ├─ Evaluation: Max Q-value    
+|  └─ Mask invalid moves    
+|    
+├─ Environment Interaction    
+|  └─ Execute move on board    
+|       
+├─ Experience Replay    
+|  └─ Store transition    
+|    
+├─ Batch Training    
+|  ├─ Sample mini-batches    
+|  ├─ Compute MSE loss    
+|  └─ Backpropagation    
+|    
+└─ Target Network Update    
+   └─ Periodic update
+
 
