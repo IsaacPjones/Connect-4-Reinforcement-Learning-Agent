@@ -1,5 +1,7 @@
 # CMPT310 D200 Group 30 Connect 4 Reinforcement Learning Agent
 
+![Connect 4 Agent in action](Connect4.gif)
+
 ## Packages needed
 - NumPy
 - Pettingzoo
